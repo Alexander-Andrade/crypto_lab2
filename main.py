@@ -1,4 +1,3 @@
-import numpy as np
 import random
 import string
 
@@ -41,8 +40,10 @@ def get_secondary_key(prim_key, p):
         if are_mod_comparable(prim_key * i, 1, p - 1):
             return i
 
+
 def Fermats_theorem_check(alpha, beta, a, b, p):
     return are_mod_comparable(alpha*beta*a*b, 1, p-1)
+
 
 class Abonent:
 
@@ -128,9 +129,9 @@ if __name__ == "__main__":
     for mu, alpha, beta, a, b in keys:
         if mu == mu4:
             print(mu, alpha, beta, a, b)
-    # for mu, alpha, beta, a, b in keys:
-    #     if not Fermats_theorem_check(alpha=alpha, beta=beta, a=a, b=b, p=257):
-    #         print("not")
+    for mu, alpha, beta, a, b in keys:
+        if not Fermats_theorem_check(alpha=alpha, beta=beta, a=a, b=b, p=257):
+            print("not")
 
 
 
