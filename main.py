@@ -11,6 +11,7 @@ def is_prime(n):
         d += 2
     return d * d > n
 
+
 # НОД
 def gsd(a, b):
     while b:
@@ -30,35 +31,35 @@ def are_mod_comparable(a, b, n):
 def encrypt(mu, key, p):
     return mu ** key % p
 
+
+def gen_all_possible_primary_keys(p):
+    return [i for i in range(2, p - 1) if are_coprime(i, p - 1)]
+
+
+def get_secondary_key(prim_key, p):
+    for i in range(2, p - 1):
+        if are_mod_comparable(prim_key * i, 1, p - 1):
+            return i
+
 class Abonent:
 
     def __init__(self, alphabet, p):
         self.p = p
         self.alphabet = alphabet
         self.prim_key = self.chose_primary_key()
-        self.sec_key = self.chose_secondary_key()
+        self.sec_key = get_secondary_key(self.prim_key, self.p)
 
     def chose_primary_key(self):
-        coprime = []
-        for i in range(2, self.p - 1):
-            if are_coprime(i, self.p - 1):
-                coprime.append(i)
+        coprime = gen_all_possible_primary_keys(self.p)
         return random.choice(coprime)
-
-    def chose_secondary_key(self):
-        comparable = []
-        for i in range(2, self.p - 1):
-            if are_mod_comparable(self.prim_key*i, 1, self.p - 1):
-                comparable.append(i)
-        return random.choice(comparable)
 
     def gen_msg(self):
         return ord(random.choice(self.alphabet))
 
-    def encrypt_viafirstkey(self, mu):
+    def encrypt_primary(self, mu):
         return encrypt(mu=mu, key=self.prim_key, p=self.p)
 
-    def encrypt_viasecondkey(self, mu):
+    def encrypt_secondary(self, mu):
         return encrypt(mu=mu, key=self.sec_key, p=self.p)
 
     def __repr__(self):
@@ -70,16 +71,16 @@ class Hacker:
     def __init__(self, alphabet, p):
         self.alphabet = alphabet
         self.p = p
-        self.possible_primary_keys = self.gen_all_possible_primary_keys()
+        self.possible_primary_keys = gen_all_possible_primary_keys(p)
         self.decode_table = self.fill_table()
 
     def fill_table(self):
         decode_table = dict()
         for mu in range(2, self.p-1):
             for alpha in self.possible_primary_keys:
-                mu1 = self.encrypt(mu, alpha)
+                mu1 = encrypt(mu, alpha, self.p)
                 for beta in self.possible_primary_keys:
-                    mu2 = self.encrypt(mu1, beta)
+                    mu2 = encrypt(mu1, beta, self.p)
                     decode_table[mu2] = {}
                     decode_table[mu2][beta] = {}
                     decode_table[mu2][beta][alpha] = {}
@@ -97,23 +98,10 @@ class Hacker:
                 alphas = self.decode_table[mu2].get(beta)
                 for alpha in alphas:
                     mu.append(self.decode_table[mu2][beta][alpha])
-                    a = self.get_secondary_key(alpha)
-                    b = self.get_secondary_key(beta)
-                    mu4 = self.get_encrypted_msg(mu2, a, b)
-
-    def get_encrypted_msg(self, mu2, a, b):
-        mu3 = encrypt(mu=mu2, key=a, p=self.p)
-        return encrypt(mu=mu3, key=b, p=self.p)
-
-    def gen_all_possible_primary_keys(self):
-        return [i for i in range(2, self.p - 1) if are_coprime(i, self.p - 1)]
-
-    def get_secondary_key(self, prim_key):
-        for i in range(2, self.p - 1):
-            if are_mod_comparable(prim_key*i, 1, self.p-1):
-                return i
-
-
+                    a = get_secondary_key(prim_key=alpha, p=self.p)
+                    b = get_secondary_key(prim_key=beta, p=self.p)
+                    mu3 = encrypt(mu=mu2, key=a, p=self.p)
+                    mu4 = encrypt(mu=mu3, key=b, p=self.p)
 
 
 if __name__ == "__main__":
