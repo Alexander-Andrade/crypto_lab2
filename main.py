@@ -41,6 +41,9 @@ def get_secondary_key(prim_key, p):
         if are_mod_comparable(prim_key * i, 1, p - 1):
             return i
 
+def Fermats_theorem_check(alpha, beta, a, b, p):
+    return are_mod_comparable(alpha*beta*a*b, 1, p-1)
+
 class Abonent:
 
     def __init__(self, alphabet, p):
@@ -78,49 +81,56 @@ class Hacker:
         decode_table = dict()
         for mu in range(2, self.p-1):
             for alpha in self.possible_primary_keys:
-                mu1 = encrypt(mu, alpha, self.p)
+                mu1 = encrypt(mu=mu, key=alpha, p=self.p)
                 for beta in self.possible_primary_keys:
-                    mu2 = encrypt(mu1, beta, self.p)
-                    decode_table[mu2] = {}
-                    decode_table[mu2][beta] = {}
+                    mu2 = encrypt(mu=mu1, key=beta, p=self.p)
+                    if not decode_table.get(mu2):
+                        decode_table[mu2] = {}
+                    if not decode_table[mu2].get(beta):
+                        decode_table[mu2][beta] = {}
                     decode_table[mu2][beta][alpha] = {}
                     decode_table[mu2][beta][alpha] = mu
         return decode_table
 
     def get_msg_keys(self, mu2):
-        keys = {}
-        a_keys = []
-        b_keys = []
-        mu = []
+        keys = []
         betas = self.decode_table.get(mu2)
         if betas:
             for beta in betas:
                 alphas = self.decode_table[mu2].get(beta)
                 for alpha in alphas:
-                    mu.append(self.decode_table[mu2][beta][alpha])
+                    mu = self.decode_table[mu2][beta][alpha]
                     a = get_secondary_key(prim_key=alpha, p=self.p)
                     b = get_secondary_key(prim_key=beta, p=self.p)
                     mu3 = encrypt(mu=mu2, key=a, p=self.p)
                     mu4 = encrypt(mu=mu3, key=b, p=self.p)
+                    if mu == mu4:
+                        keys.append((mu, alpha, beta, a, b))
+        return keys
 
 
 if __name__ == "__main__":
-    alphabet = np.array(list(string.ascii_lowercase))
+    alphabet = list(string.ascii_lowercase)
     p = 257
     a = Abonent(alphabet=alphabet, p=p)
     b = Abonent(alphabet=alphabet, p=p)
     c = Hacker(alphabet=alphabet, p=p)
-    print(c.decode_table)
-    # print(a1)
-    # print(a2)
-    # msg = a.gen_msg()
-    # mu1 = a.encrypt_viafirstkey(msg)
-    # mu2 = b.encrypt_viafirstkey(mu1)
-    # mu3 = a.encrypt_viasecondkey(mu2)
-    # mu4 = b.encrypt_viasecondkey(mu3)
+    mu = a.gen_msg()
+    mu1 = a.encrypt_primary(mu)
+    mu2 = b.encrypt_primary(mu1)
+    mu3 = a.encrypt_secondary(mu2)
+    mu4 = b.encrypt_secondary(mu3)
 
-    # print("msg={},mu1={}, mu2={}, mu3={}, mu4={}".format(msg, mu1, mu2, mu3, mu4))
-
+    print(mu)
+    print(mu4)
+    keys = c.get_msg_keys(mu2=mu2)
+    print(keys)
+    for mu, alpha, beta, a, b in keys:
+        if mu == mu4:
+            print(mu, alpha, beta, a, b)
+    # for mu, alpha, beta, a, b in keys:
+    #     if not Fermats_theorem_check(alpha=alpha, beta=beta, a=a, b=b, p=257):
+    #         print("not")
 
 
 
