@@ -27,6 +27,9 @@ def are_mod_comparable(a, b, n):
     return a % n == b
 
 
+def encrypt(mu, key, p):
+    return mu ** key % p
+
 class Abonent:
 
     def __init__(self, alphabet, p):
@@ -52,11 +55,11 @@ class Abonent:
     def gen_msg(self):
         return ord(random.choice(self.alphabet))
 
-    def firstkey_srypt(self, mu):
-        return mu**self.prim_key % self.p
+    def encrypt_viafirstkey(self, mu):
+        return encrypt(mu=mu, key=self.prim_key, p=self.p)
 
-    def secondkey_srypt(self, mu):
-        return mu**self.sec_key % self.p
+    def encrypt_viasecondkey(self, mu):
+        return encrypt(mu=mu, key=self.sec_key, p=self.p)
 
     def __repr__(self):
         return "p={}, prim_key={}, sec_key={}".format(self.p, self.prim_key, self.sec_key)
@@ -64,20 +67,18 @@ class Abonent:
 
 class Hacker:
 
-    def __init__(self, alphabet, p, abonent1, abonent2):
+    def __init__(self, alphabet, p):
         self.alphabet = alphabet
         self.p = p
-        self.a1 = abonent1
-        self.a2 = abonent2
-        self.coprime_with_p_minus_1 = self.gen_all_possible_primary_keys()
+        self.possible_primary_keys = self.gen_all_possible_primary_keys()
         self.decode_table = self.fill_table()
 
     def fill_table(self):
         decode_table = dict()
         for mu in range(2, self.p-1):
-            for alpha in self.coprime_with_p_minus_1:
+            for alpha in self.possible_primary_keys:
                 mu1 = self.encrypt(mu, alpha)
-                for beta in self.coprime_with_p_minus_1:
+                for beta in self.possible_primary_keys:
                     mu2 = self.encrypt(mu1, beta)
                     decode_table[mu2] = {}
                     decode_table[mu2][beta] = {}
@@ -101,8 +102,8 @@ class Hacker:
                     mu4 = self.get_encrypted_msg(mu2, a, b)
 
     def get_encrypted_msg(self, mu2, a, b):
-        mu3 = self.encrypt(mu2, a)
-        return self.encrypt(mu3, b)
+        mu3 = encrypt(mu=mu2, key=a, p=self.p)
+        return encrypt(mu=mu3, key=b, p=self.p)
 
     def gen_all_possible_primary_keys(self):
         return [i for i in range(2, self.p - 1) if are_coprime(i, self.p - 1)]
@@ -112,9 +113,6 @@ class Hacker:
             if are_mod_comparable(prim_key*i, 1, self.p-1):
                 return i
 
-    def encrypt(self, mu, key):
-        return mu**key % self.p
-
 
 
 
@@ -123,15 +121,15 @@ if __name__ == "__main__":
     p = 257
     a = Abonent(alphabet=alphabet, p=p)
     b = Abonent(alphabet=alphabet, p=p)
-    c = Hacker(alphabet=alphabet, p=p, abonent1=a, abonent2=b)
-    print(c.table)
+    c = Hacker(alphabet=alphabet, p=p)
+    print(c.decode_table)
     # print(a1)
     # print(a2)
     # msg = a.gen_msg()
-    # mu1 = a.firstkey_srypt(msg)
-    # mu2 = b.firstkey_srypt(mu1)
-    # mu3 = a.secondkey_srypt(mu2)
-    # mu4 = b.secondkey_srypt(mu3)
+    # mu1 = a.encrypt_viafirstkey(msg)
+    # mu2 = b.encrypt_viafirstkey(mu1)
+    # mu3 = a.encrypt_viasecondkey(mu2)
+    # mu4 = b.encrypt_viasecondkey(mu3)
 
     # print("msg={},mu1={}, mu2={}, mu3={}, mu4={}".format(msg, mu1, mu2, mu3, mu4))
 
