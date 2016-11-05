@@ -64,32 +64,76 @@ class Abonent:
 
 class Hacker:
 
-    def __init__(self, alphabet,a1, a2):
+    def __init__(self, alphabet, p, abonent1, abonent2):
         self.alphabet = alphabet
-        self.a1 = a1
-        self.a2 = a2
-        self.mu_dict = dict()
+        self.p = p
+        self.a1 = abonent1
+        self.a2 = abonent2
+        self.coprime_with_p_minus_1 = self.gen_all_possible_primary_keys()
+        self.decode_table = self.fill_table()
 
-    def __m2_for_alphabet(self):
-        for letter in range(self.alphabet):
-            pass
+    def fill_table(self):
+        decode_table = dict()
+        for mu in range(2, self.p-1):
+            for alpha in self.coprime_with_p_minus_1:
+                mu1 = self.encrypt(mu, alpha)
+                for beta in self.coprime_with_p_minus_1:
+                    mu2 = self.encrypt(mu1, beta)
+                    decode_table[mu2] = {}
+                    decode_table[mu2][beta] = {}
+                    decode_table[mu2][beta][alpha] = {}
+                    decode_table[mu2][beta][alpha] = mu
+        return decode_table
+
+    def get_msg_keys(self, mu2):
+        keys = {}
+        a_keys = []
+        b_keys = []
+        mu = []
+        betas = self.decode_table.get(mu2)
+        if betas:
+            for beta in betas:
+                alphas = self.decode_table[mu2].get(beta)
+                for alpha in alphas:
+                    mu.append(self.decode_table[mu2][beta][alpha])
+                    a = self.get_secondary_key(alpha)
+                    b = self.get_secondary_key(beta)
+                    mu4 = self.get_encrypted_msg(mu2, a, b)
+
+    def get_encrypted_msg(self, mu2, a, b):
+        mu3 = self.encrypt(mu2, a)
+        return self.encrypt(mu3, b)
+
+    def gen_all_possible_primary_keys(self):
+        return [i for i in range(2, self.p - 1) if are_coprime(i, self.p - 1)]
+
+    def get_secondary_key(self, prim_key):
+        for i in range(2, self.p - 1):
+            if are_mod_comparable(prim_key*i, 1, self.p-1):
+                return i
+
+    def encrypt(self, mu, key):
+        return mu**key % self.p
+
 
 
 
 if __name__ == "__main__":
     alphabet = np.array(list(string.ascii_lowercase))
     p = 257
-    a1 = Abonent(alphabet=alphabet, p=p)
-    a2 = Abonent(alphabet=alphabet, p=p)
-    print(a1)
-    print(a2)
-    msg = a1.gen_msg()
-    mu1 = a1.firstkey_srypt(msg)
-    mu2 = a2.firstkey_srypt(mu1)
-    mu3 = a1.secondkey_srypt(mu2)
-    mu4 = a2.secondkey_srypt(mu3)
+    a = Abonent(alphabet=alphabet, p=p)
+    b = Abonent(alphabet=alphabet, p=p)
+    c = Hacker(alphabet=alphabet, p=p, abonent1=a, abonent2=b)
+    print(c.table)
+    # print(a1)
+    # print(a2)
+    # msg = a.gen_msg()
+    # mu1 = a.firstkey_srypt(msg)
+    # mu2 = b.firstkey_srypt(mu1)
+    # mu3 = a.secondkey_srypt(mu2)
+    # mu4 = b.secondkey_srypt(mu3)
 
-    print("msg={},mu1={}, mu2={}, mu3={}, mu4={}".format(msg, mu1, mu2, mu3, mu4))
+    # print("msg={},mu1={}, mu2={}, mu3={}, mu4={}".format(msg, mu1, mu2, mu3, mu4))
 
 
 
