@@ -1,5 +1,6 @@
 import random
 import string
+import copy
 
 
 def is_prime(n):
@@ -116,42 +117,23 @@ if __name__ == "__main__":
     a = Abonent(alphabet=alphabet, p=p)
     b = Abonent(alphabet=alphabet, p=p)
     c = Hacker(alphabet=alphabet, p=p)
-    mu = a.gen_msg()
-    mu1 = a.encrypt_primary(mu)
-    mu2 = b.encrypt_primary(mu1)
-    mu3 = a.encrypt_secondary(mu2)
-    mu4 = b.encrypt_secondary(mu3)
+    keys = None
+    for i in range(50):
+        mu = a.gen_msg()
+        mu1 = a.encrypt_primary(mu)
+        mu2 = b.encrypt_primary(mu1)
+        mu3 = a.encrypt_secondary(mu2)
+        mu4 = b.encrypt_secondary(mu3)
 
-    print(mu)
-    print(mu4)
-    keys1 = c.get_msg_keys(mu2=mu2)
-    #print(keys1)
+        print(mu)
+        print(mu4)
+        keys = c.get_msg_keys(mu2=mu2)
+        print("len = {}".format(len(keys)))
+        if i > 0:
+            keys = set(keys).intersection(old_keys)
+        old_keys = copy.deepcopy(keys)
 
-    mu = a.gen_msg()
-    mu1 = a.encrypt_primary(mu)
-    mu2 = b.encrypt_primary(mu1)
-    mu3 = a.encrypt_secondary(mu2)
-    mu4 = b.encrypt_secondary(mu3)
-
-    print(mu)
-    print(mu4)
-    keys2 = c.get_msg_keys(mu2=mu2)
-    # print(keys2)
-
-
-    mu = a.gen_msg()
-    mu1 = a.encrypt_primary(mu)
-    mu2 = b.encrypt_primary(mu1)
-    mu3 = a.encrypt_secondary(mu2)
-    mu4 = b.encrypt_secondary(mu3)
-
-    print(mu)
-    print(mu4)
-    keys3 = c.get_msg_keys(mu2=mu2)
-
-    keys = set(keys1).intersection(keys2).intersection(keys3)
     print(keys)
-
     # for mu, alpha, beta, a, b in keys:
     #     if mu == mu4:
     #         print(mu, alpha, beta, a, b)
