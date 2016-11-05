@@ -106,7 +106,7 @@ class Hacker:
                     mu3 = encrypt(mu=mu2, key=a, p=self.p)
                     mu4 = encrypt(mu=mu3, key=b, p=self.p)
                     if mu == mu4:
-                        keys.append((mu, alpha, beta, a, b))
+                        keys.append((alpha, beta, a, b))
         return keys
 
 
@@ -124,14 +124,40 @@ if __name__ == "__main__":
 
     print(mu)
     print(mu4)
-    keys = c.get_msg_keys(mu2=mu2)
+    keys1 = c.get_msg_keys(mu2=mu2)
+    #print(keys1)
+
+    mu = a.gen_msg()
+    mu1 = a.encrypt_primary(mu)
+    mu2 = b.encrypt_primary(mu1)
+    mu3 = a.encrypt_secondary(mu2)
+    mu4 = b.encrypt_secondary(mu3)
+
+    print(mu)
+    print(mu4)
+    keys2 = c.get_msg_keys(mu2=mu2)
+    # print(keys2)
+
+
+    mu = a.gen_msg()
+    mu1 = a.encrypt_primary(mu)
+    mu2 = b.encrypt_primary(mu1)
+    mu3 = a.encrypt_secondary(mu2)
+    mu4 = b.encrypt_secondary(mu3)
+
+    print(mu)
+    print(mu4)
+    keys3 = c.get_msg_keys(mu2=mu2)
+
+    keys = set(keys1).intersection(keys2).intersection(keys3)
     print(keys)
-    for mu, alpha, beta, a, b in keys:
-        if mu == mu4:
-            print(mu, alpha, beta, a, b)
-    for mu, alpha, beta, a, b in keys:
-        if not Fermats_theorem_check(alpha=alpha, beta=beta, a=a, b=b, p=257):
-            print("not")
+
+    # for mu, alpha, beta, a, b in keys:
+    #     if mu == mu4:
+    #         print(mu, alpha, beta, a, b)
+    # for mu, alpha, beta, a, b in keys:
+    #     if not Fermats_theorem_check(alpha=alpha, beta=beta, a=a, b=b, p=257):
+    #         print("not")
 
 
 
