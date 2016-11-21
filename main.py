@@ -59,7 +59,8 @@ class Abonent:
         return random.choice(coprime)
 
     def gen_msg(self):
-        return ord(random.choice(self.alphabet))
+        #return ord(random.choice(self.alphabet))
+        return random.randint(2, self.p-1)
 
     def encrypt_primary(self, mu):
         return encrypt(mu=mu, key=self.prim_key, p=self.p)
@@ -107,7 +108,7 @@ class Hacker:
                     mu3 = encrypt(mu=mu2, key=a, p=self.p)
                     mu4 = encrypt(mu=mu3, key=b, p=self.p)
                     if mu == mu4:
-                        keys.append((alpha, beta, a, b))
+                        keys.append((mu, alpha, beta, a, b))
         return keys
 
 
@@ -118,22 +119,43 @@ if __name__ == "__main__":
     b = Abonent(alphabet=alphabet, p=p)
     c = Hacker(alphabet=alphabet, p=p)
     keys = None
-    for i in range(50):
-        mu = a.gen_msg()
-        mu1 = a.encrypt_primary(mu)
-        mu2 = b.encrypt_primary(mu1)
-        mu3 = a.encrypt_secondary(mu2)
-        mu4 = b.encrypt_secondary(mu3)
+    mu = a.gen_msg()
+    mu1 = a.encrypt_primary(mu)
+    mu2 = b.encrypt_primary(mu1)
+    mu3 = a.encrypt_secondary(mu2)
+    mu4 = b.encrypt_secondary(mu3)
 
-        print(mu)
-        print(mu4)
-        keys = c.get_msg_keys(mu2=mu2)
-        print("len = {}".format(len(keys)))
-        if i > 0:
-            keys = set(keys).intersection(old_keys)
-        old_keys = copy.deepcopy(keys)
+    print("transmitting message mu1: {}".format(mu))
+    print("mu4: {}".format(mu4))
 
-    print(keys)
+    keys = c.get_msg_keys(mu2=mu2)
+    print("number of keys combinations: {}".format(len(keys)))
+    print("messages and its keys: {}".format(keys))
+    messages, alphas, betas, a_list, b_list = zip(*keys)
+    print("probable messages: {}".format(set(messages)))
+
+
+
+
+
+
+
+    # for i in range(50):
+    #     mu = a.gen_msg()
+    #     mu1 = a.encrypt_primary(mu)
+    #     mu2 = b.encrypt_primary(mu1)
+    #     mu3 = a.encrypt_secondary(mu2)
+    #     mu4 = b.encrypt_secondary(mu3)
+    #
+    #     print(mu)
+    #     print(mu4)
+    #     keys = c.get_msg_keys(mu2=mu2)
+    #     print("len = {}".format(len(keys)))
+    #     if i > 0:
+    #         keys = set(keys).intersection(old_keys)
+    #     old_keys = copy.deepcopy(keys)
+    #
+    # print(keys)
     # for mu, alpha, beta, a, b in keys:
     #     if mu == mu4:
     #         print(mu, alpha, beta, a, b)
